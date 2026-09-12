@@ -1,0 +1,166 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// 1. TÀI KHOẢN NGƯỜI DÙNG (Đồng bộ từ Clerk)
+model User {
+  id        String   @id // Clerk User ID (user_2x...)
+  email     String   @unique
+  name      String?
+  avatar    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  routines        Routine[]
+  customExercises Exercise[]
+  workoutLogs     WorkoutLog[]
+  trainerSessions TrainerSession[]
+  subscriptions   Subscription[]
+
+  @@map("users")
+}
+
+// 2. THƯ VIỆN ĐỘNG TÁC (Tích hợp Cloudflare R2 cho GIF/Video)
+model Exercise {
+  id           String   @id @default(cuid())
+  name         String
+  category     String   // Push, Pull, Legs, Abs, Cardio...
+  equipment    String?  // Dumbbell, Barbell, Machine, Bodyweight...
+  mediaUrl     String?  // Link GIF/Video lưu trên Cloudflare R2
+  instructions String?
+  isCustom     Boolean  @default(false)
+  userId       String?  // null nếu là bài mặc định; có ID nếu user tự tạo
+
+  user         User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  routineItems RoutineItem[]
+  logItems     WorkoutLogItem[]
+
+  createdAt    DateTime @default(now())
+
+  @@index([userId])
+  @@map("exercises")
+}
+
+// 3. GIÁO ÁN / BÀI TẬP (Hợp nhất Workout & Routine)
+model Routine {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  isCustom    Boolean  @default(false)
+  userId      String?  // null nếu là giáo án chung; có ID nếu thuộc về user
+
+  user        User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items       RoutineItem[]
+  workoutLogs WorkoutLog[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@map("routines")
+}
+
+// 4. BẢNG TRUNG GIÁN: CHI TIẾT BÀI TẬP TRONG GIÁO ÁN
+model RoutineItem {
+  id         String   @id @default(cuid())
+  routineId  String
+  exerciseId String
+  order      Int      @default(0) // Thứ tự tập
+  sets       Int      @default(3)
+  reps       Int      @default(10)
+  restSec    Int      @default(60)
+
+  routine    Routine  @relation(fields: [routineId], references: [id], onDelete: Cascade)
+  exercise   Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+
+  createdAt  DateTime @default(now())
+
+  @@index([routineId])
+  @@index([exerciseId])
+  @@map("routine_items")
+}
+
+// 5. LỊCH SỬ TẬP LUYỆN
+model WorkoutLog {
+  id          String           @id @default(cuid())
+  userId      String
+  routineId   String
+  duration    Int?             // Tổng thời gian tập (phút)
+  notes       String?          // Ghi chú sau buổi tập
+  completedAt DateTime         @default(now())
+
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  routine     Routine          @relation(fields: [routineId], references: [id], onDelete: Cascade)
+  logItems    WorkoutLogItem[]
+
+  @@index([userId])
+  @@index([routineId])
+  @@map("workout_logs")
+}
+
+// Chi tiết số kg và reps thực tế tập được trong từng set
+model WorkoutLogItem {
+  id           String     @id @default(cuid())
+  workoutLogId String
+  exerciseId   String
+  setNumber    Int        // Set 1, 2, 3...
+  weightKg     Float?     // Mức tạ thực tế (kg)
+  repsDone     Int?       // Số rep hoàn thành
+
+  workoutLog   WorkoutLog @relation(fields: [workoutLogId], references: [id], onDelete: Cascade)
+  exercise     Exercise   @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+
+  @@index([workoutLogId])
+  @@index([exerciseId])
+  @@map("workout_log_items")
+}
+
+// 6. AI TRAINER CHAT
+model TrainerSession {
+  id        String           @id @default(cuid())
+  userId    String?
+  title     String           @default("Trò chuyện mới")
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  user      User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages  TrainerMessage[]
+
+  @@index([userId])
+  @@map("trainer_sessions")
+}
+
+model TrainerMessage {
+  id        String         @id @default(cuid())
+  sessionId String
+  sender    String         // "user" hoặc "ai"
+  text      String         @db.Text
+  createdAt DateTime       @default(now())
+
+  session   TrainerSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@map("trainer_messages")
+}
+
+model Subscription {
+  id                   String   @id @default(cuid())
+  userId               String
+  stripeCustomerId     String?  @unique
+  stripeSubscriptionId String   @unique
+  plan                 String
+  status               String
+  currentPeriodEnd    DateTime?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@map("subscriptions")
+}
