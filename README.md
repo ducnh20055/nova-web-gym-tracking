@@ -1,5 +1,162 @@
 # NOVA
 
+NOVA is a personal workout assistant with a dark-mode interface. It provides preset programs, a custom program builder, workout tracking for weight and reps, progress statistics, and an AI trainer.
+
+## Features
+
+- Preset workout programs for chest, back, legs, shoulders, arms, and abs.
+- Exercise details, images, and instructional GIFs from `public/videos`.
+- Create, edit, delete, and duplicate personal programs.
+- Record weight, reps, sets, and the duration of each workout.
+- Automatically prefill the latest weight and reps when starting a workout.
+- Dashboard and progress tracking with total volume, workout count, and personal records.
+- AI Trainer powered by Gemini.
+- Account authentication and synchronization with Clerk.
+- Subscription payments through Stripe.
+
+## Tech Stack
+
+- Next.js 16 with App Router
+- React 19 and TypeScript
+- Tailwind CSS 4
+- Prisma with PostgreSQL
+- Clerk for authentication
+- Gemini API for the AI Trainer
+- Stripe for payments
+- Lucide React and Framer Motion
+
+## Requirements
+
+- Node.js 20 or later
+- PostgreSQL
+- A Clerk account if authentication is required
+- A Gemini API key to use the AI Trainer
+- Stripe keys to enable payments
+
+## Installation
+
+```bash
+git clone <repository-url>
+cd nova
+npm install
+```
+
+Create a `.env` file in the project root:
+
+```env
+DATABASE_URL="postgresql://user:password@localhost:5432/nova"
+DATABASE_POOL_MAX="10"
+
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_test_..."
+CLERK_SECRET_KEY="sk_test_..."
+
+GEMINI_API_KEY="your-gemini-api-key"
+
+STRIPE_SECRET_KEY="sk_test_..."
+STRIPE_WEBHOOK_SECRET="whsec_..."
+```
+
+Generate the Prisma Client and run the migrations:
+
+```bash
+npx prisma generate
+npx prisma migrate dev
+```
+
+Seed the exercise library and preset programs:
+
+```bash
+npx prisma db seed
+```
+
+## Running the Project
+
+Start the development server:
+
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000).
+
+Build and run the production server:
+
+```bash
+npm run build
+npm run start
+```
+
+Run the linter:
+
+```bash
+npm run lint
+```
+
+## Main Routes
+
+- `/`: NOVA landing page, features, pricing, and contact information.
+- `/programs`: List of preset workout programs.
+- `/programs/[id]`: Details and workouts for a preset program.
+- `/routine`: Create and manage personal programs.
+- `/programs/custom/[id]`: Workout session for a personal program.
+- `/dashboard`: Workout activity overview.
+- `/progress`: Workout history, volume, and personal records.
+- `/trainer`: Chat with the AI Trainer.
+
+## Important Directory Structure
+
+```text
+src/
+  app/                  Pages and API routes
+  components/           UI components
+  context/              Shared React context
+  data/                 Workout program and exercise data
+  lib/                  Prisma, Stripe, and authentication utilities
+  types/                TypeScript types
+prisma/
+  schema.prisma         Database schema
+  seed.ts               Seed data
+public/
+  images/               Exercise and interface images
+  videos/               Exercise instructional GIFs
+```
+
+## Exercise Data
+
+The `src/data/exercises.json` file contains the original exercise data and should not be edited directly to translate names or descriptions. Display translations are stored in `src/data/exerciseTranslations.ts`.
+
+Local images and GIFs are loaded from:
+
+- `public/images`
+- `public/videos`
+
+## Database
+
+The main tables include:
+
+- `User`: User accounts.
+- `Exercise`: Exercise library.
+- `Routine`: Preset or personal workout programs.
+- `RoutineItem`: Exercises within a program.
+- `WorkoutLog`: Workout history.
+- `WorkoutLogItem`: Actual weight and reps for each set.
+- `TrainerSession` and `TrainerMessage`: AI chat history.
+- `Subscription`: Stripe subscription details.
+
+When the schema changes, create a migration with:
+
+```bash
+npx prisma migrate dev --name change-name
+```
+
+Never commit secrets from `.env` or source code.
+
+---
+
+# NOVA
+
 NOVA là ứng dụng hỗ trợ tập luyện cá nhân với giao diện Dark Mode. Ứng dụng cung cấp giáo án mẫu, trình tạo giáo án riêng, theo dõi số kg/reps qua từng buổi tập, thống kê tiến độ và trợ lý AI.
 
 ## Tính năng
