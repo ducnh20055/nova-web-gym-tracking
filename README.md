@@ -307,5 +307,3 @@ Khi thay đổi schema, tạo migration bằng:
 ```bash
 npx prisma migrate dev --name ten-thay-doi
 ```
-
-Không commit các khóa bí mật trong `.env` hoặc mã nguồn.
