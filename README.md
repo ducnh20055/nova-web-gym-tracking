@@ -151,10 +151,8 @@ When the schema changes, create a migration with:
 npx prisma migrate dev --name change-name
 ```
 
-
-<details> <summary>Tiếng Việt (bấm để xem)</summary>
 ---
-# NOVA
+<details> <summary>Tiếng Việt (bấm để xem)</summary>
   
 NOVA là ứng dụng hỗ trợ tập luyện cá nhân với giao diện Dark Mode. Ứng dụng cung cấp giáo án mẫu, trình tạo giáo án riêng, theo dõi số kg/reps qua từng buổi tập, thống kê tiến độ và trợ lý AI.
 
