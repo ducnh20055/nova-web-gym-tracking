@@ -151,8 +151,6 @@ When the schema changes, create a migration with:
 npx prisma migrate dev --name change-name
 ```
 
-Never commit secrets from `.env` or source code.
-
 ---
 
 # NOVA
